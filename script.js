@@ -23,7 +23,7 @@ function mostrarUbicacion() {
 }
 
 // Enviar la reserva al backend de Netlify o Vercel
-fetch('https://tu-nombre-en-netlify.netlify.app/.netlify/functions/reservar', {
+fetch('https://glowing-torrone-23470f.netlify.app', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ barbero: '1', hora: '10:00' })
