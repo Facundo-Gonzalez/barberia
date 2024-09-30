@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Seleccionar Hora - Barbero 1</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #1c1c1c; /* Fondo oscuro */
+            color: #f4f4f4; /* Texto claro */
+        }
+
+        header {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            width: 100%;
+            font-size: 24px;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+            text-align: center;
+            background-color: #2b2b2b;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        /* Estilo para las opciones de hora */
+        .horas-disponibles {
+            margin: 20px 0;
+        }
+
+        .horas-disponibles label {
+            display: block;
+            margin: 10px 0;
+        }
+
+        select {
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        /* Estilo para los botones */
+        .botones {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            background-color: #ff4500; /* Naranja llamativo */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ff6347;
+            transform: scale(1.05);
+        }
+
+        /* Botón cancelar diferente */
+        .cancelar {
+            background-color: #555;
+        }
+
+        .cancelar:hover {
+            background-color: #777;
+        }
+
+        /* Estilo para el mensaje de confirmación */
+        .mensaje-confirmacion {
+            display: none;
+            background-color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #ff4500; /* Color del mensaje */
+        }
+
+        /* Estilo para horas reservadas */
+        .reservado {
+            background-color: #444;
+            color: #ccc;
+            pointer-events: none; /* Desactiva los eventos de clic */
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Seleccionar Hora - Barbero 1</h1>
+    </header>
+
+    <div class="container">
+        <!-- Opciones de horas disponibles -->
+        <div class="horas-disponibles">
+            <h3>Selecciona una hora disponible:</h3>
+            <label for="horas">Horas disponibles:</label>
+            <select id="horas">
+                <option value="09:00">09:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="12:00">12:00 PM</option>
+                <option value="13:00">01:00 PM</option>
+                <option value="14:00">02:00 PM</option>
+                <option value="15:00">03:00 PM</option>
+                <option value="16:00">04:00 PM</option>
+            </select>
+        </div>
+
+        <!-- Botones de aceptar y cancelar -->
+        <div class="botones">
+            <button onclick="mostrarMensaje()">Aceptar</button>
+            <button class="cancelar" onclick="cancelarCita()">Cancelar</button>
+        </div>
+
+        <!-- Mensaje de confirmación -->
+        <div id="mensaje" class="mensaje-confirmacion">
+            <p>Tienes una hora para cancelar la reserva.</p>
+            <button onclick="enviarWhatsApp()">Aceptar</button>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar horas reservadas desde el almacenamiento local
+        const horasReservadas = JSON.parse(localStorage.getItem('horasReservadas')) || {};
+
+        // Marcar horas reservadas al cargar la página
+        window.onload = function() {
+            for (const hora in horasReservadas) {
+                if (horasReservadas[hora]) {
+                    const option = document.querySelector(`option[value="${hora}"]`);
+                    if (option) {
+                        option.classList.add('reservado');
+                        option.disabled = true; // Desactiva la opción
+                    }
+                }
+            }
+        };
+
+        // Función para mostrar el mensaje de confirmación
+        function mostrarMensaje() {
+            const horaSeleccionada = document.getElementById("horas").value;
+            const mensajeDiv = document.getElementById("mensaje");
+            mensajeDiv.style.display = "block"; // Mostrar el mensaje
+
+            // Guardar la hora seleccionada en el botón
+            const aceptarBtn = mensajeDiv.querySelector('button');
+            aceptarBtn.onclick = function() {
+                reservarHora(horaSeleccionada);
+            };
+        }
+
+        // Función para reservar la hora
+        function reservarHora(hora) {
+            horasReservadas[hora] = true; // Marcar la hora como reservada
+            localStorage.setItem('horasReservadas', JSON.stringify(horasReservadas)); // Guardar en Local Storage
+
+            // Actualizar la interfaz
+            const option = document.querySelector(`option[value="${hora}"]`);
+            if (option) {
+                option.classList.add('reservado');
+                option.disabled = true; // Desactiva la opción
+            }
+
+            // Enviar el mensaje por WhatsApp
+            enviarWhatsApp(hora);
+        }
+
+        // Función para enviar el mensaje por WhatsApp
+        function enviarWhatsApp(hora) {
+            const numeroBarbero = "+595 984981705"; // Reemplaza con el número de teléfono del barbero
+            const mensaje = `Hola, quiero agendar una cita para la hora: ${hora}.`;
+            const urlWhatsApp = `https://api.whatsapp.com/send?phone=${numeroBarbero}&text=${encodeURIComponent(mensaje)}`;
+
+            window.open(urlWhatsApp, '_blank'); // Abre WhatsApp en una nueva pestaña
+        }
+
+        function cancelarCita() {
+            alert("Has cancelado la selección.");
+            // Aquí puedes redirigir al usuario a la página anterior o de inicio
+        }
+    </script>
+
+</body>
+</html>
